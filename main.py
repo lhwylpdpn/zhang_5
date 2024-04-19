@@ -26,7 +26,13 @@ def generate_token():
     timestamp = timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     # 使用密钥和时间戳生成token
     token = hmac.new(SECRET_KEY.encode(), timestamp.encode(), 'sha256').hexdigest()
-    return token, timestamp
+    #继续生成当前分钟-1,-2,+1,+2的token,并且返回
+    token1 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()-datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
+    token2 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()-datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
+    token3 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()+datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
+    token4 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()+datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
+    token_list=[token,token1,token2,token3,token4]
+    return token_list, timestamp
 
 # 定义一个路由，用于处理图片上传的请求
 @app.route('/uploadimage', methods=['POST'])
@@ -44,8 +50,8 @@ def upload_file():
 
 
     #判断token的逻辑
-    current_token, timestamp = generate_token()
-    if token != current_token:
+    token_list, timestamp = generate_token()
+    if token not in token_list:
         return jsonify({'message': 'Invalid token', 'code': 1100})
 
 
@@ -72,4 +78,4 @@ def upload_file():
 
     # 运行flask应用
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
