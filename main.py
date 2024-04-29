@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 import os
 import hmac
 import datetime
+import logic.api_logic as api_
+import time
 # 创建一个flask应用对象
 app = Flask(__name__)
 SECRET_KEY = 'tokenTest'
@@ -38,7 +40,6 @@ def generate_token():
 @app.route('/uploadimage', methods=['POST'])
 def upload_file():
     # 检查请求中是否有文件
-    print(333)
     #打印request的内容
     if 'file' not in request.files:
         return jsonify({'message': 'No file part', 'code': 400})
@@ -46,7 +47,7 @@ def upload_file():
     #token来自于header里面的token
 
     token = request.headers.get('token','') if request.headers.get('token','') else request.args.get('token','')
-    print(token)
+    request_id = request.headers.get('request_id','') if request.headers.get('request_id','') else request.args.get('request_id','')
 
 
     #判断token的逻辑
@@ -69,9 +70,13 @@ def upload_file():
     if file.content_length > MAX_CONTENT_LENGTH:
         return jsonify({'message': 'File size too large', 'code': 1103})
 
+
+    #测试逻辑,传入文件、request_id,并且返回结果
+    uuid_,request_id,score,score_content,file_md5 = api_.test_logic(file,request_id)
+
+
     #打印文件名,并且返回成功
-    print(file.filename)
-    return jsonify({'message': 'File uploaded successfully', 'code': 200})
+    return jsonify({'message': 'File uploaded successfully', 'code': 200,'body': {'score':score,'score_content':score_content,'service_id':uuid_,'request_id':request_id,'file_md5':file_md5,'timestamp':int(time.time())}})
 
 
 
