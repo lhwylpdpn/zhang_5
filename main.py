@@ -6,6 +6,7 @@ import hmac
 import datetime
 import logic.api_logic as api_
 import time
+import logic._log as log_
 # 创建一个flask应用对象
 app = Flask(__name__)
 SECRET_KEY = 'tokenTest'
@@ -70,10 +71,14 @@ def upload_file():
     if file.content_length > MAX_CONTENT_LENGTH:
         return jsonify({'message': 'File size too large', 'code': 1103})
 
-
-    #测试逻辑,传入文件、request_id,并且返回结果
-    uuid_,request_id,score,score_content,file_md5 = api_.test_logic(file,request_id)
-
+    try:
+        start_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        uuid_,request_id,score,score_content,file_md5 = api_.logic_v1(file,request_id)
+        end_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_.log_to_DB(request_id,score,score_content,file_md5,start_time,end_time)
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'File cannot be read', 'code': 1104})
 
     #打印文件名,并且返回成功
     return jsonify({'message': 'File uploaded successfully', 'code': 200,'body': {'score':score,'score_content':score_content,'service_id':uuid_,'request_id':request_id,'file_md5':file_md5,'timestamp':int(time.time())}})
