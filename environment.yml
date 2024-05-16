@@ -1,0 +1,5 @@
+name: zhang
+channels:
+  - conda-forge
+  - defaults
+prefix: /Users/lhwylp/miniconda3/envs/zhang
