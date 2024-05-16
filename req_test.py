@@ -16,7 +16,7 @@ def generate_token():
 if __name__ == '__main__':
     t, ts = generate_token()
     print(t)
-    res = requests.post('http://127.0.0.1:5000/uploadimage',files={'file': open('upload/test4.jpg', 'rb')},headers={'token':t,'request_id':'123456'})
+    res = requests.post('http://127.0.0.1:5000/uploadimage',files={'file': open('upload/test3.jpg', 'rb')},headers={'token':t,'request_id':'123456'})
     print(res.json())
 
 
