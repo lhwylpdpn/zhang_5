@@ -35,6 +35,8 @@ def generate_token():
     token3 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()+datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
     token4 = hmac.new(SECRET_KEY.encode(), (datetime.datetime.now()+datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(), 'sha256').hexdigest()
     token_list=[token,token1,token2,token3,token4]
+    #增加用于测试的token
+    token_list.append('test')
     return token_list, timestamp
 
 # 定义一个路由，用于处理图片上传的请求
