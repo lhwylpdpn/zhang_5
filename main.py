@@ -50,7 +50,7 @@ def upload_file():
     #token来自于header里面的token
 
     token = request.headers.get('token','') if request.headers.get('token','') else request.args.get('token','')
-    request_id = request.headers.get('request_id','') if request.headers.get('request_id','') else request.args.get('request_id','')
+    request_id = request.headers.get('request_id','') if request.headers.get('request_id','')!='' else request.args.get('request_id','')
 
 
     #判断token的逻辑
