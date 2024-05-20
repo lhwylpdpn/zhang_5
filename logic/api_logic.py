@@ -7,12 +7,21 @@ from .import graph_process as gp
 import tempfile
 import cv2
 def logic_v1(file,request_id):
-    with tempfile.NamedTemporaryFile(delete=False) as temp:
-        file.save(temp)
-        temp.flush()
-        image = cv2.imread(temp.name)
-    images_res = gp.grid_graph(image)
+    uuid_ = str(uuid.uuid4()) + '_' + str(int(time.time()))
 
+
+    with open('log_image/'+request_id+'_before.jpg','wb') as f:
+        f.write(file.read())
+        f.close()
+    image = cv2.imread('log_image/'+request_id+'_before.jpg')
+    #todo request_id 里可能有非法字符不一定可以保存成文件名，升级方向应该是随机文件名，然后数据库存关系
+
+    images_res,image_process = gp.grid_graph(image)
+
+    with open('process_image/'+request_id+'_'+uuid_+'_after.jpg','wb') as f:
+        #将处理后的图片存储
+        f.write(cv2.imencode('.jpg', image_process)[1].tostring())
+        f.close()
     score_dict = {}
     print_hand_related = ((0, 1), (2, 3), (4, 5), (6, 7), (8, 9))
     _col = 10
@@ -33,7 +42,7 @@ def logic_v1(file,request_id):
     else:
         score_content='继续努力'
 
-    uuid_=str(uuid.uuid4())+'_'+str(int(time.time()))
+
     #计算file的md5值
     file_md5 = hashlib.md5(file.read()).hexdigest()
     return uuid_,request_id,score,score_content,file_md5

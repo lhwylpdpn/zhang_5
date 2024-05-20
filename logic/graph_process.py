@@ -270,6 +270,9 @@ def grid_graph(image_original):
         cv2.line(image, (x1, y1+i*h_line), (x2, y1+i*h_line), (0, 0, 255), 2)
         cv2.line(image, (x1+i*w_line, y1), (x1+i*w_line, y4), (0, 0, 255), 2)
 
+    #划线后的图单独存储一次
+
+
     #最终将images的位置切成10*10的小图，并存储在对象返回，并记录每个图的位置序号
     image_res=image_original.copy()
     images_res={}
@@ -281,7 +284,7 @@ def grid_graph(image_original):
             h=h_line
             roi = image_res[y:y + h, x:x + w]
             images_res[(i,j)]=roi #i 是列，j是行
-    return images_res
+    return images_res,image
 
 def compare_images(imageA, imageB):
 
@@ -321,9 +324,7 @@ def image_show(imageA, imageB):
 
 
 if __name__ == '__main__':
-    pic_name='../test4.jpg'
+    pic_name='../test2.jpg'
     image = cv2.imread(pic_name)
-    print(type(image))
     res=main(image)
-    print(res)
 

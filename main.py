@@ -47,10 +47,17 @@ def upload_file():
     if 'file' not in request.files:
         return jsonify({'message': 'No file part', 'code': 400})
     file = request.files['file']
+
+
+
     #token来自于header里面的token
 
-    token = request.headers.get('token','') if request.headers.get('token','') else request.args.get('token','')
-    request_id = request.headers.get('request_id','') if request.headers.get('request_id','')!='' else request.args.get('request_id','')
+    token = request.headers.get('token','')
+    request_id = request.headers.get('request_id','')
+
+    #先存储一次request_id方便查询
+    header_info=request.headers
+    log_.log_to_db_request(request_id,header_info)
 
 
     #判断token的逻辑

@@ -50,3 +50,22 @@ def log_to_DB(request_id,score,score_content,file_md5,start_time,end_time):
         cursor.execute(sql)
         conn.commit()
         cursor.close()
+
+#将每张进行识别的图，和识别前的图都进行存储
+def log_to_db_request(request_id,header_info):
+    record_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+    header_info=header_info.__repr__()
+    #替换掉里面的单引号
+    header_info=header_info.replace("'",'"')
+    sql = "insert into `ai-eval`.client_requests (request_id,header_info,updated_at) values ('{}','{}','{}')".format(request_id,header_info,record_time)
+    with MySQLConnection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        conn.commit()
+        cursor.close()
+
+if __name__ == '__main__':
+    #打印python的版本,不是pymysql
+    import sys
+    print(sys.version)
