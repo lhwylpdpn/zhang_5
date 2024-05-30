@@ -20,7 +20,7 @@ def upload_image():
 
 def get_history():
     t, ts = generate_token()
-    res = requests.post('http://127.0.0.1:5000/history_order',headers={'request_id':t,'token':t})
+    res = requests.post('http://127.0.0.1:5000/history_order',headers={'Request-Id':t,'token':t})
     print(res.json())
 if __name__ == '__main__':
     upload_image()
