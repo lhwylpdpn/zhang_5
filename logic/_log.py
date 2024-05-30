@@ -40,11 +40,11 @@ class MySQLConnection(object):
 
 
 
-def log_to_DB(request_id,score,score_content,file_md5,start_time,end_time):
+def log_to_DB(request_id,service_id,score,score_content,file_md5,start_time,end_time):
 
     record_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-    sql = "insert into `ai-eval`.record_info (request_id,score,score_content,file_md5,start_time,end_time,record_time) values ('{}',{},'{}','{}','{}','{}','{}')".format(request_id,score,score_content,file_md5,start_time,end_time,record_time)
+    sql = "insert into `ai-eval`.record_info (request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id) values ('{}',{},'{}','{}','{}','{}','{}','{}')".format(request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id)
     with MySQLConnection() as conn:
         cursor = conn.cursor()
         cursor.execute(sql)
@@ -64,6 +64,41 @@ def log_to_db_request(request_id,header_info):
         cursor.execute(sql)
         conn.commit()
         cursor.close()
+
+
+def get_history_order_info(request_id):
+    """
+
+    :param request_id:
+    判断request_id 是否是字符串,是否有特殊字符，不是字符串要返回报错
+    是字符串，查数据库，结果按照同步返回的一样
+    如果是多条仅仅返回时间靠前的这条
+    后续增加了其他参数，再扩展
+
+    :return:
+    return一个完整的json
+    """
+    if type(request_id) != str:
+        #如果不是字符串,强制转成字符串
+        request_id=str(request_id)
+
+    sql="""select score,score_content,service_id,request_id,file_md5,start_time,end_time
+    from `ai-eval`.record_info
+    where request_id='"""+request_id+"""'"""
+    sql+=' order by start_time desc  limit 1;'
+    with MySQLConnection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        res=cursor.fetchall()
+        conn.commit()
+        cursor.close()
+    #将res转成json
+    if len(res)==0:
+        return {'message':'request_id not found','code':1106}
+    res=res[0]
+    res={'score':res[0],'score_content':res[1],'service_id':res[2],'request_id':res[3],'file_md5':res[4],'start_time':str(res[5]),'end_time':str(res[6])}
+    res={'message': 'get history_order successfully', 'code': 200, 'body': res}
+    return res
 
 if __name__ == '__main__':
     #打印python的版本,不是pymysql

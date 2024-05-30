@@ -84,7 +84,7 @@ def upload_file():
         start_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         uuid_,request_id,score,score_content,file_md5 = api_.logic_v1(file,request_id)
         end_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        log_.log_to_DB(request_id,score,score_content,file_md5,start_time,end_time)
+        log_.log_to_DB(request_id,uuid_,score,score_content,file_md5,start_time,end_time)
     except Exception as e:
         print(e)
         return jsonify({'message': 'File cannot be read', 'code': 1104})
@@ -96,5 +96,25 @@ def upload_file():
 
 
     # 运行flask应用
+
+
+@app.route('/history_order', methods=['POST'])
+def get_order():
+    token_list, timestamp = generate_token()
+    token = request.headers.get('token', '')
+    request_id = request.headers.get('request_id', '')
+    if token not in token_list:
+        return jsonify({'message': 'Invalid token', 'code': 1100})
+    #如果没有request_id,则返回错误信息
+    if request_id == '':
+        return jsonify({'message': 'Invalid request_id', 'code': 1105})
+
+    try:
+        res = log_.get_history_order_info(request_id)
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'System error', 'code': 4001})
+    return jsonify(res)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
