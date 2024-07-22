@@ -53,7 +53,7 @@ def generate_token():
         token4 = hmac.new(SECRET_KEY_tmp.encode(),
                           (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
                           'sha256').hexdigest()
-        token_list = [token, token1, token2, token3, token4]
+        token_list = [token, token1, token2, token3, token4,'test']
         token_dict[channel]=token_list
 
     #增加用于测试的token
