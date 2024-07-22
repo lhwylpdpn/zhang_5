@@ -18,7 +18,7 @@ def generate_token():
 def upload_image():
     t, ts = generate_token()
     res = requests.post('http://127.0.0.1:5000/uploadimage', files={'file': open('upload/test4.jpg', 'rb')},
-                        headers={'token': t, 'Request-Id': t,'channel_id':'1001','symbol_id':'test'})
+                        headers={'token': 'test', 'Request-Id': t,'channel_id':'1000','symbol_id':'test'})
     print(res.json())
     #print(res)
 def get_history():
