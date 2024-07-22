@@ -40,11 +40,11 @@ class MySQLConnection(object):
 
 
 
-def log_to_DB(request_id,service_id,score,score_content,file_md5,start_time,end_time):
+def log_to_DB(request_id,service_id,score,score_content,file_md5,start_time,end_time,symbol_id,channel_id):
 
     record_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-    sql = "insert into `ai-eval`.record_info (request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id) values ('{}',{},'{}','{}','{}','{}','{}','{}')".format(request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id)
+    sql = "insert into `ai-eval`.record_info (request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id,symbol_id,channel_id) values ('{}',{},'{}','{}','{}','{}','{}','{}','{}','{}')".format(request_id,score,score_content,file_md5,start_time,end_time,record_time,service_id,symbol_id,channel_id)
     with MySQLConnection() as conn:
         cursor = conn.cursor()
         cursor.execute(sql)
@@ -66,7 +66,7 @@ def log_to_db_request(request_id,header_info):
         cursor.close()
 
 
-def get_history_order_info(request_id):
+def get_history_order_info(request_id,symbol_id,channel_id):
     """
 
     :param request_id:
@@ -75,16 +75,35 @@ def get_history_order_info(request_id):
     如果是多条仅仅返回时间靠前的这条
     后续增加了其他参数，再扩展
 
+    :param symbol_id:
+    强制转换成字符串
+    然后如果是空字符串,要去除where条件，返回所有symbol_id的记录
+
+    :param channel_id:
+    强制转换成字符串
+    不负责空的问题，直接加入where条件
+
     :return:
     return一个完整的json
     """
     if type(request_id) != str:
         #如果不是字符串,强制转成字符串
         request_id=str(request_id)
+    if type(symbol_id) != str:
+        #如果不是字符串,强制转成字符串
+        symbol_id=str(symbol_id)
+    if type(channel_id) != str:
+        #如果不是字符串,强制转成字符串
+        channel_id=str(channel_id)
 
     sql="""select score,score_content,service_id,request_id,file_md5,start_time,end_time
     from `ai-eval`.record_info
-    where request_id='"""+request_id+"""'"""
+    where request_id='"""+request_id+"""' 
+    and channel_id='"""+channel_id+"""'
+    
+    """
+    if symbol_id!='':
+        sql+=" and symbol_id='"+symbol_id+"'"
     sql+=' order by start_time desc  limit 1;'
     with MySQLConnection() as conn:
         cursor = conn.cursor()
