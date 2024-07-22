@@ -81,6 +81,7 @@ def upload_file():
     #20240722 增加channel的判断
     symbol_id = request.headers.get('symbol_id', '')
     channel_id= request.headers.get('channel_id','')
+    print('channel_id:',channel_id)
     if channel_id not in SECRET_channel:
         return jsonify({'message': 'Invalid channel', 'code': 1107})
     token_dict, timestamp = generate_token()
