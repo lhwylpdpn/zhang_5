@@ -39,8 +39,8 @@ def generate_token():
     #20240722 token的生成逻辑变更，增加channel的判断，然后返回一个dict，key是channle，value是token，用于后续的判断
     for  channel in SECRET_channel:
         SECRET_KEY_tmp = SECRET_KEY+str(channel)+"_"
-
-        #SECRET_KEY_tmp="test"
+        if channel=='1000':
+            SECRET_KEY_tmp="test"
         #print('SECRET_KEY_tmp:',SECRET_KEY_tmp)
         token = hmac.new(SECRET_KEY_tmp.encode(), timestamp.encode(), 'sha256').hexdigest()
         token1 = hmac.new(SECRET_KEY_tmp.encode(),
@@ -55,7 +55,7 @@ def generate_token():
         token4 = hmac.new(SECRET_KEY_tmp.encode(),
                           (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
                           'sha256').hexdigest()
-        token_list = [token, token1, token2, token3, token4,'test']
+        token_list = [token, token1, token2, token3, token4]
         token_dict[channel]=token_list
 
     #增加用于测试的token
