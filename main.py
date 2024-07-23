@@ -40,7 +40,7 @@ def generate_token():
     for  channel in SECRET_channel:
         SECRET_KEY_tmp = SECRET_KEY+str(channel)+"_"
         if channel=='1000':
-            SECRET_KEY_tmp="test"
+            SECRET_KEY_tmp="1000xxl"
         #print('SECRET_KEY_tmp:',SECRET_KEY_tmp)
         token = hmac.new(SECRET_KEY_tmp.encode(), timestamp.encode(), 'sha256').hexdigest()
         token1 = hmac.new(SECRET_KEY_tmp.encode(),
