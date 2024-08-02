@@ -7,6 +7,7 @@ from .import graph_process as gp
 import tempfile
 import cv2
 def logic_v1(file,request_id):
+    print('file:',file)
     uuid_ = str(uuid.uuid4()) + '_' + str(int(time.time()))
 
 
@@ -14,6 +15,7 @@ def logic_v1(file,request_id):
         f.write(file.read())
         f.close()
     image = cv2.imread('log_image/'+request_id+'_before.jpg')
+
     #todo request_id 里可能有非法字符不一定可以保存成文件名，升级方向应该是随机文件名，然后数据库存关系
 
     images_res,image_process = gp.grid_graph(image)
@@ -69,5 +71,6 @@ def logic_v1(file,request_id):
 
 
     #计算file的md5值
+    file.seek(0)
     file_md5 = hashlib.md5(file.read()).hexdigest()
     return uuid_,request_id,score,score_content,file_md5
