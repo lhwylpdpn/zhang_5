@@ -31,36 +31,40 @@ def allowed_file(filename):
 
 
 # 生成token的函数
-def generate_token():
+
+def generate_token(request_id, symbol_id, channel_id, timestamp):
     # 获取当前时间戳
-    timestamp = timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     # 使用密钥和时间戳生成token
     token_dict={}
     #20240722 token的生成逻辑变更，增加channel的判断，然后返回一个dict，key是channle，value是token，用于后续的判断
     for  channel in SECRET_channel:
-        SECRET_KEY_tmp = SECRET_KEY+str(channel)+"_"
+        SECRET_KEY_tmp = SECRET_KEY + str(channel) + "_"
         if channel=='1000':
             SECRET_KEY_tmp="1000xxl"
-        #print('SECRET_KEY_tmp:',SECRET_KEY_tmp)
-        token = hmac.new(SECRET_KEY_tmp.encode(), timestamp.encode(), 'sha256').hexdigest()
-        token1 = hmac.new(SECRET_KEY_tmp.encode(),
-                          (datetime.datetime.now() - datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(),
-                          'sha256').hexdigest()
-        token2 = hmac.new(SECRET_KEY_tmp.encode(),
-                          (datetime.datetime.now() - datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
-                          'sha256').hexdigest()
-        token3 = hmac.new(SECRET_KEY_tmp.encode(),
-                          (datetime.datetime.now() + datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(),
-                          'sha256').hexdigest()
-        token4 = hmac.new(SECRET_KEY_tmp.encode(),
-                          (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
-                          'sha256').hexdigest()
-        token_list = [token, token1, token2, token3, token4]
+        message = 'channel_id='+str(channel_id)+'&symbol_id='+str(symbol_id)+'&timestamp='+str(timestamp)
+        print('message:',message)
+        token = hmac.new(SECRET_KEY_tmp.encode(), message.encode(), 'sha256').hexdigest()
+
+
+
+        # token1 = hmac.new(SECRET_KEY_tmp.encode(),
+        #                   (datetime.datetime.now() - datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(),
+        #                   'sha256').hexdigest()
+        # token2 = hmac.new(SECRET_KEY_tmp.encode(),
+        #                   (datetime.datetime.now() - datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
+        #                   'sha256').hexdigest()
+        # token3 = hmac.new(SECRET_KEY_tmp.encode(),
+        #                   (datetime.datetime.now() + datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M').encode(),
+        #                   'sha256').hexdigest()
+        # token4 = hmac.new(SECRET_KEY_tmp.encode(),
+        #                   (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
+        #                   'sha256').hexdigest()
+        token_list = [token]
         token_dict[channel]=token_list
 
     #增加用于测试的token
     #token_list.append('test')
-    return token_dict, timestamp
+    return token_dict
 
 # 定义一个路由，用于处理图片上传的请求
 @app.route('/uploadimage', methods=['POST'])
@@ -70,23 +74,22 @@ def upload_file():
     if 'file' not in request.files:
         return jsonify({'message': 'No file part', 'code': 400})
     file = request.files['file']
-
-
-
     #token来自于header里面的token
 
-    token = request.headers.get('token','')
-    request_id = request.headers.get('request_id','')
+    form_lower = {k.lower(): v for k, v in request.form.to_dict().items()}
 
-    #20240722 增加channel的判断
-    symbol_id = request.headers.get('symbol_id', '')
-    channel_id= request.headers.get('channel_id','')
-    print('channel_id:',channel_id)
+
+    token = request.headers.get('token','')
+    request_id = form_lower.get('request_id','')
+    symbol_id = form_lower.get('symbol_id', '')
+    channel_id= form_lower.get('channel_id','')
+    timestamp = form_lower.get('timestamp','')
     if channel_id not in SECRET_channel:
         return jsonify({'message': 'Invalid channel', 'code': 1107})
-    token_dict, timestamp = generate_token()
+    token_dict = generate_token(request_id=request_id, symbol_id=symbol_id, channel_id=channel_id, timestamp=timestamp)
 
     if token not in token_dict.get(channel_id,[]):
+        print('token:',token,'token_list:',token_dict.get(channel_id,[]),'channel_id',channel_id)
         #print('token:',token,'token_list:',token_dict.get(channel_id,[]),'channel_id',channel_id)
         return jsonify({'message': 'Invalid token', 'code': 1100})
 
