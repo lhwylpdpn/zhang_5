@@ -211,7 +211,7 @@ def test3():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def grid_graph(image_original):
+def grid_graph_old(image_original):
     #复制一个图片
 
     ###
@@ -292,12 +292,83 @@ def compare_images(imageA, imageB):
     imageB = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
     imageA = cv2.resize(imageA, (100, 100))
     imageB = cv2.resize(imageB, (100, 100))
+    #同时显示两个图
     score = ssim(imageA, imageB)
-    score = (score+1)*50
+    score = score*100
     return score
 
+
+def grid_graph(image_original):
+
+    #获得图片的宽高
+    h,w,_=image_original.shape
+    image=image_original.copy()
+    ####参数区域
+    _row=10#要切分的行数
+    _col=10#要切分的列数
+
+    w_left=0.111#识别区域距离图纸的左边的距离，占图纸最左边开始算的比例
+    w_right=0.887#识别区域距禽图纸的右边的距离，占图纸最左边开始算的比例
+    h_top=0.187#识别区域距离图纸的上边的距离，占图纸最上边开始算的比例
+    h_bottom=0.875#识别区域距离图纸的下边的距离，占图纸最上边开始算的比例
+
+
+    #内圈的间距
+
+    w_inner_left=0.03
+    h_inner_top=0.02
+    w_inner_right=0.03
+    h_inner_bottom=0.02
+
+    #每两行之间的间距
+    h_line_interval=0.011
+    h_line_interval=int(h*h_line_interval)
+    x1=w*w_left+(w*(w_inner_left))
+    y1 = h*h_top+(h*(h_inner_top))
+    # 右上角的坐标
+    x2 =w*w_right-(w*(w_inner_right))
+    y2 = h*h_top+(h*(h_inner_top))
+    # 左下角的坐标
+    x3 = w*w_left+(w*(w_inner_left))
+    y3 = h*h_bottom-(h*(h_inner_bottom))
+    # 右下角的坐标
+    x4 = w*w_right-(w*(w_inner_right))
+    y4 = h*h_bottom-(h*(h_inner_bottom))
+    # 画线
+    x1, y1, x2, y2, x3, y3, x4, y4 = [int(x) for x in [x1, y1, x2, y2, x3, y3, x4, y4]]
+    # cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    # cv2.line(image, (x1, y1), (x3, y3), (0, 0, 255), 2)
+    # cv2.line(image, (x2, y2), (x4, y4), (0, 0, 255), 2)
+    # cv2.line(image, (x3, y3), (x4, y4), (0, 0, 255), 2)
+
+
+
+    #要在这个区域内进行切割,首先切成10行
+    #每行的高度
+    h_line=int(((y4-y1)-h_line_interval*(_row-1))/_row)
+    #每行的宽度
+    w_line=int((x2-x1)/_col)
+    for i in range(1,11):
+        cv2.line(image, (x1, y1+(i-1)*h_line+(i-1)*h_line_interval), (x2, y1+(i-1)*h_line+(i-1)*h_line_interval), (0, 0, 255), 2)
+        cv2.line(image, (x1, y1+(i)*h_line+(i-1)*h_line_interval), (x2, y1+(i)*h_line+(i-1)*h_line_interval), (0, 0, 255), 2)
+
+        cv2.line(image, (x1+i*w_line, y1), (x1+i*w_line, y4), (0, 0, 255), 2)
+
+        # 最终将images的位置切成10*10的小图，并存储在对象返回，并记录每个图的位置序号
+    image_res = image_original.copy()
+    images_res = {}
+    for i in range(_col):
+        for j in range(_row):
+            x = x1 + i * w_line
+            y = y1 + j * h_line+(j)*h_line_interval
+            w = w_line
+            h = h_line
+            roi = image_res[y:y + h, x:x + w]
+            images_res[(i, j)] = roi  # i 是列，j是行
+    return images_res, image
 def main(image_original):
-    images_res = grid_graph(image_original)
+    images_res,image_process = grid_graph_new(image_original)
+
     #印刷体和手写体对对应行数
     print_hand_related=((0,1),(2,3),(4,5),(6,7),(8,9))
     _col=10
@@ -307,8 +378,6 @@ def main(image_original):
             score=compare_images(images_res[(i,a)],images_res[(i,b)])
             score_dict[(i,a,b)]=score
 
-    #调试用，检查某一组
-    #image_show(images_res[(4,2)],images_res[(4,3)])
 
     return score_dict
 def image_show(imageA, imageB):
@@ -324,7 +393,7 @@ def image_show(imageA, imageB):
 
 
 if __name__ == '__main__':
-    pic_name='../test2.jpg'
+    pic_name='../test3.jpg'
     image = cv2.imread(pic_name)
     res=main(image)
-
+    print(res)
