@@ -211,7 +211,7 @@ def test3():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def grid_graph(image_original):
+def grid_graph_old(image_original):
     #复制一个图片
 
     ###
@@ -294,78 +294,85 @@ def compare_images(imageA, imageB):
     imageB = cv2.resize(imageB, (100, 100))
     #同时显示两个图
     score = ssim(imageA, imageB)
+    #image_show(imageA, imageB)
+    #print('之前分',score)
     score = (score+1)*50
+    #print('之后分',score)
+
     return score
 
 
-def grid_graph_v2(image_original):
+def grid_graph(image_original):
 
     #获得图片的宽高
     h,w,_=image_original.shape
     image=image_original.copy()
 
-
-    ####这些是PDF的参数
-    ####参数区域
-    _row=10#要切分的行数
-    _col=10#要切分的列数
-
-    w_left=0.111#识别区域距离图纸的左边的距离，占图纸最左边开始算的比例
-    w_right=0.887#识别区域距禽图纸的右边的距离，占图纸最左边开始算的比例
-    h_top=0.187#识别区域距离图纸的上边的距离，占图纸最上边开始算的比例
-    h_bottom=0.875#识别区域距离图纸的下边的距离，占图纸最上边开始算的比例
-
-
-    #内圈的间距
-
-    w_inner_left=0.03
-    h_inner_top=0.02
-    w_inner_right=0.03
-    h_inner_bottom=0.02
-
-    #每两行之间的间距
-    h_line_interval=0.011
     #
-    # ####这些是打印后的A4纸张的参数
+    # ####这些是PDF的参数
     # ####参数区域
-    # _row = 10  # 要切分的行数
-    # _col = 10  # 要切分的列数
+    # _row=10#要切分的行数
+    # _col=10#要切分的列数
     #
-    # w_left = 0.121 # 识别区域距离图纸的左边的距离，占图纸最左边开始算的比例
-    # w_right = 0.893  # 识别区域距禽图纸的右边的距离，占图纸最左边开始算的比例
-    # h_top = 0.187  # 识别区域距离图纸的上边的距离，占图纸最上边开始算的比例
-    # h_bottom = 0.863  # 识别区域距离图纸的下边的距离，占图纸最上边开始算的比例
-    #
-    # # 内圈的间距
-    #
-    # w_inner_left = 0.03
-    # h_inner_top = 0.02
-    # w_inner_right = 0.03
-    # h_inner_bottom = 0.02
-    #
-    # # 每两行之间的间距
-    # h_line_interval = 0.011
+    # w_left=0.111#识别区域距离图纸的左边的距离，占图纸最左边开始算的比例
+    # w_right=0.887#识别区域距禽图纸的右边的距离，占图纸最左边开始算的比例
+    # h_top=0.187#识别区域距离图纸的上边的距离，占图纸最上边开始算的比例
+    # h_bottom=0.875#识别区域距离图纸的下边的距离，占图纸最上边开始算的比例
     #
     #
+    # #内圈的间距
     #
+    # w_inner_left=0.03
+    # h_inner_top=0.02
+    # w_inner_right=0.03
+    # h_inner_bottom=0.02
     #
-    # x1=w*w_left
-    # y1 = h*h_top
-    # # 右上角的坐标
-    # x2 =w*w_right
-    # y2 = h*h_top
-    # # 左下角的坐标
-    # x3 = w*w_left
-    # y3 = h*h_bottom
-    # # 右下角的坐标
-    # x4 = w*w_right
-    # y4 = h*h_bottom
-    # #测试的时候划线外圈
-    # x1, y1, x2, y2, x3, y3, x4, y4 = [int(x) for x in [x1, y1, x2, y2, x3, y3, x4, y4]]
-    # cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
-    # cv2.line(image, (x1, y1), (x3, y3), (0, 0, 255), 2)
-    # cv2.line(image, (x2, y2), (x4, y4), (0, 0, 255), 2)
-    # cv2.line(image, (x3, y3), (x4, y4), (0, 0, 255), 2)
+    # #每两行之间的间距
+    # h_line_interval=0.011
+    #
+
+
+
+    ####这些是打印后的A4纸张的参数
+    ####参数区域
+    _row = 10  # 要切分的行数
+    _col = 10  # 要切分的列数
+
+    w_left = 0.145 # 识别区域距离图纸的左边的距离，占图纸最左边开始算的比例
+    w_right = 0.86  # 识别区域距禽图纸的右边的距离，占图纸最左边开始算的比例
+    h_top = 0.207  # 识别区域距离图纸的上边的距离，占图纸最上边开始算的比例
+    h_bottom = 0.843  # 识别区域距离图纸的下边的距离，占图纸最上边开始算的比例
+
+    # 内圈的间距
+
+    w_inner_left = 0.03
+    h_inner_top = 0.02
+    w_inner_right = 0.03
+    h_inner_bottom = 0.02
+
+    # 每两行之间的间距
+    h_line_interval = 0.011
+
+
+
+
+    x1=w*w_left
+    y1 = h*h_top
+    # 右上角的坐标
+    x2 =w*w_right
+    y2 = h*h_top
+    # 左下角的坐标
+    x3 = w*w_left
+    y3 = h*h_bottom
+    # 右下角的坐标
+    x4 = w*w_right
+    y4 = h*h_bottom
+    #测试的时候划线外圈
+    x1, y1, x2, y2, x3, y3, x4, y4 = [int(x) for x in [x1, y1, x2, y2, x3, y3, x4, y4]]
+    cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    cv2.line(image, (x1, y1), (x3, y3), (0, 0, 255), 2)
+    cv2.line(image, (x2, y2), (x4, y4), (0, 0, 255), 2)
+    cv2.line(image, (x3, y3), (x4, y4), (0, 0, 255), 2)
 
 
     h_line_interval=int(h*h_line_interval)
@@ -427,6 +434,7 @@ def main(image_original):
             score_dict[(i,a,b)]=score
 
     score = sum(score_dict.values()) / len(score_dict)
+    print(score)
     return score_dict
 def image_show(imageA, imageB):
     #将两个图片横向拼在一起显示
@@ -442,6 +450,7 @@ def image_show(imageA, imageB):
 
 if __name__ == '__main__':
     pic_name='biaozhun4.jpg'
+    pic_name = 'bianzhuhao.jpg'
     image = cv2.imread(pic_name)
     res=main(image)
     print(res)
