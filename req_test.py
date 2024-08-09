@@ -21,7 +21,7 @@ def upload_image():
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     t = generate_token(Request_Id, Symbol_Id, Channel_Id, timestamp)
     print(t)
-    res = requests.post('http://127.0.0.1:5000/uploadimage', files={'file': open('biaozhun.jpg', 'rb')},data={'Request_Id': Request_Id,'Channel_Id':Channel_Id,'Symbol_Id':Symbol_Id,'timestamp':timestamp},headers={'token': t})
+    res = requests.post('http://127.0.0.1:5000/uploadimage', files={'file': open('test4.jpg', 'rb')},data={'Request_Id': Request_Id,'Channel_Id':Channel_Id,'Symbol_Id':Symbol_Id,'timestamp':timestamp},headers={'token': t})
 
     print(res.json())
     #print(res)
