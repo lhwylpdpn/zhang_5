@@ -46,7 +46,7 @@ def generate_token(request_id, symbol_id, channel_id, timestamp):
         message = 'channel_id='+str(channel_id)+'&timestamp='+str(timestamp)
         print('message:',message)
         token = hmac.new(SECRET_KEY_tmp.encode(), message.encode(), 'sha256').hexdigest()
-        token_test=['test']
+        token_test='test'
 
 
         # token1 = hmac.new(SECRET_KEY_tmp.encode(),
