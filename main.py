@@ -118,10 +118,13 @@ def upload_file():
 
     try:
         start_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        #print(len(file.read()))
         uuid_,request_id,score,score_content,file_md5 = api_.logic_v1(file,request_id)
         end_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log_.log_to_DB(request_id,uuid_,score,score_content,file_md5,start_time,end_time,symbol_id,channel_id)
     except Exception as e:
+        #打印具体哪儿行出错
+
         print(e)
         return jsonify({'message': 'File cannot be read', 'code': 1104})
 

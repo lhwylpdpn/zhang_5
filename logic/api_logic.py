@@ -7,14 +7,14 @@ from .import graph_process as gp
 import tempfile
 import cv2
 def logic_v1(file,request_id):
-    print('file:',file)
+    #print('file:',file)
     uuid_ = str(uuid.uuid4()) + '_' + str(int(time.time()))
 
 
-    with open('log_image/'+request_id+'_before.jpg','wb') as f:
+    with open('log_image/'+request_id+'_'+uuid_+'_before.jpg','wb') as f:
         f.write(file.read())
         f.close()
-    image = cv2.imread('log_image/'+request_id+'_before.jpg')
+    image = cv2.imread('log_image/'+request_id+'_'+uuid_+'_before.jpg')
 
     #todo request_id 里可能有非法字符不一定可以保存成文件名，升级方向应该是随机文件名，然后数据库存关系
 
