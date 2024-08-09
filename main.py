@@ -46,7 +46,7 @@ def generate_token(request_id, symbol_id, channel_id, timestamp):
         message = 'channel_id='+str(channel_id)+'&timestamp='+str(timestamp)
         print('message:',message)
         token = hmac.new(SECRET_KEY_tmp.encode(), message.encode(), 'sha256').hexdigest()
-
+        token_test=['test']
 
 
         # token1 = hmac.new(SECRET_KEY_tmp.encode(),
@@ -61,11 +61,12 @@ def generate_token(request_id, symbol_id, channel_id, timestamp):
         # token4 = hmac.new(SECRET_KEY_tmp.encode(),
         #                   (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M').encode(),
         #                   'sha256').hexdigest()
-        token_list = [token]
+        token_list = [token,token_test]
         token_dict[channel]=token_list
 
+
+
     #增加用于测试的token
-    #token_list.append('test')
     return token_dict
 
 # 定义一个路由，用于处理图片上传的请求
