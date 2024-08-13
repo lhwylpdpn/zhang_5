@@ -8,6 +8,8 @@ from pytesseract import Output
 from skimage.metrics import structural_similarity as ssim
 
 
+
+
 # 加载图片
 
 def test1():
@@ -287,17 +289,33 @@ def grid_graph_old(image_original):
     return images_res,image
 
 def compare_images(imageA, imageB):
+    # 记录空白格部分的特征
 
+    none_feature = cv2.imread('none_feature.jpg')
     imageA = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
     imageB = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
+    none_feature=cv2.cvtColor(none_feature, cv2.COLOR_BGR2GRAY)
+    _, imageA = cv2.threshold(imageA, 127, 255, cv2.THRESH_BINARY)
+    _, imageB = cv2.threshold(imageB, 127, 255, cv2.THRESH_BINARY)
     imageA = cv2.resize(imageA, (100, 100))
     imageB = cv2.resize(imageB, (100, 100))
+    none_feature = cv2.resize(none_feature, (100, 100))
+    #image_show(none_feature, imageB)
+    score=ssim(none_feature, imageB)
+    #print('ssim',score)
+    if score>0.6:
+        print('空白格')
+        return 0
+
     #同时显示两个图
     score = ssim(imageA, imageB)
     #image_show(imageA, imageB)
     #print('之前分',score)
     score = (score+1)*50
     #print('之后分',score)
+
+
+
 
     return score
 
@@ -307,10 +325,10 @@ def grid_graph(image_original):
     #获得图片的宽高
     h,w,_=image_original.shape
     image=image_original.copy()
-
     #
-    # ####这些是PDF的参数
-    # ####参数区域
+    #
+    # ##这些是PDF的参数
+    # ##参数区域
     # _row=10#要切分的行数
     # _col=10#要切分的列数
     #
@@ -329,9 +347,9 @@ def grid_graph(image_original):
     #
     # #每两行之间的间距
     # h_line_interval=0.011
+
+
     #
-
-
 
     ####这些是打印后的A4纸张的参数
     ####参数区域
@@ -352,8 +370,8 @@ def grid_graph(image_original):
 
     # 每两行之间的间距
     h_line_interval = 0.011
-
-
+    #
+    #
 
 
     x1=w*w_left
@@ -421,18 +439,26 @@ def main(image_original):
     #印刷体和手写体对对应行数
 
     #显示一下images
-    cv2.imshow('Result', image_process)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+
 
     print_hand_related=((0,1),(2,3),(4,5),(6,7),(8,9))
+
+
     _col=10
     score_dict={}
+
+
+    #print_hand_related=((1,3),(5,7))
+
     for a,b in print_hand_related:
         for i in range(_col):
+            #align_images(images_res[(i,a)], images_res[(i,b)])
             score=compare_images(images_res[(i,a)],images_res[(i,b)])
+
             score_dict[(i,a,b)]=score
 
+    #print(score_dict)
     score = sum(score_dict.values()) / len(score_dict)
     print(score)
     return score_dict
@@ -447,10 +473,33 @@ def image_show(imageA, imageB):
 
 
 
+def align_images(img1, img2):
+    import cv2
+    import numpy as np
+
+    # 读取图像
+    # 二值化处理
+
+
+
+    # 特征匹配
+    orb = cv2.ORB_create()
+    kp1, des1 = orb.detectAndCompute(img1, None)
+    kp2, des2 = orb.detectAndCompute(img2, None)
+    print(kp2,des2)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    print(bf,des1,des2)
+    matches = bf.match(des1, des2)
+    matches = sorted(matches, key=lambda x: x.distance)
+
+    # 计算相似度评分
+    similarity_score = len(matches) / max(len(kp1), len(kp2))
+    print("Similarity Score:", similarity_score)
+
 
 if __name__ == '__main__':
-    pic_name='biaozhun4.jpg'
-    pic_name = 'bianzhuhao.jpg'
+    pic_name='bianzhuhao.jpg'
+    #pic_name = 'biaozhun3.jpg'
     image = cv2.imread(pic_name)
     res=main(image)
-    print(res)
+

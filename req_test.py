@@ -28,7 +28,7 @@ def upload_image():
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     t = generate_token(Request_Id, Symbol_Id, Channel_Id, timestamp)
     print(t)
-    res = requests.post('http://'+ip+':5000/uploadimage', files={'file': open('test.jpg', 'rb')},data={'Request_Id': Request_Id,'Channel_Id':Channel_Id,'Symbol_Id':Symbol_Id,'timestamp':timestamp},headers={'token': t})
+    res = requests.post('http://'+ip+':5000/uploadimage', files={'file': open('biaozhun4.jpg', 'rb')},data={'Request_Id': Request_Id,'Channel_Id':Channel_Id,'Symbol_Id':Symbol_Id,'timestamp':timestamp},headers={'token': t})
     time_res.append(time.time()-a)
     print(res.json())
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     import threading
     t=[]
-    for i in range(400):
+    for i in range(1):
         t.append(threading.Thread(target=upload_image))
     for i in t:
         i.start()
