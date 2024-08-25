@@ -106,6 +106,7 @@ def grid_graph(img):
     # 读取图像
     col=10
     row=10
+    # Todo 投射转换，img输出是投射完的
 
     # 转换为灰度图像
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -128,9 +129,14 @@ def grid_graph(img):
     vertical = cv2.dilate(vertical, verticalStructure, (-1, -1))
     mask = horizontal + vertical
     # 找到轮廓
+
     #contours, _ = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     #打印图片的尺寸
+    cv2.imshow('Result', mask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
     x,y,w,h = 0,0,0,0
     for cnt in contours:
         t_x, t_y, t_w, t_h = cv2.boundingRect(cnt)
@@ -148,6 +154,7 @@ def grid_graph(img):
             #cv2.rectangle(img, (t_x, t_y), (t_x + t_w, t_y + t_h), (0, 255, 0), 2)
             gird_list.append((t_x, t_y, t_w, t_h))
     image_res = img.copy()
+    print(len(gird_list))
     remove_list=[]
     for x, y, w, h in gird_list:
         if abs(w-h)>=5:
@@ -376,6 +383,30 @@ def compare_images(imageA, imageB):
 
 
 
+def  compare_images_pearson(imageA, imageB):
+    from scipy.stats import pearsonr
+
+    none_feature = cv2.imread('none_feature.jpg')
+    imageA_ = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
+    imageB_ = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
+    none_feature = cv2.cvtColor(none_feature, cv2.COLOR_BGR2GRAY)
+    _, imageA_ = cv2.threshold(imageA_, 127, 255, cv2.THRESH_BINARY)
+    _, imageB_ = cv2.threshold(imageB_, 127, 255, cv2.THRESH_BINARY)
+    imageA_ = cv2.resize(imageA_, (100, 100))
+    imageB_ = cv2.resize(imageB_, (100, 100))
+    none_feature = cv2.resize(none_feature, (100, 100))
+    img_array_A = np.array(imageA_)
+    img_array_B = np.array(imageB_)
+    img_array_none = np.array(none_feature)
+    img_array_A = img_array_A.flatten()
+    img_array_B = img_array_B.flatten()
+    img_array_none = img_array_none.flatten()
+
+    # 计算皮尔森相关系数
+    correlation, _ = pearsonr(img_array_A, img_array_B)
+    score = (correlation + 1) * 50
+    return score
+
 def grid_graph_v2(image_original,x=0,y=0,weigh=0,high=0):
     w, h = image_original.shape[1], image_original.shape[0]
     image = image_original.copy()
@@ -588,9 +619,9 @@ def main(image_original):
     images_res,image_process = grid_graph(image_original)
     #印刷体和手写体对对应行数
     #显示一下images
-    cv2.imshow('Result', image_process)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('Result', image_process)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 
     print_hand_related=((0,1),(2,3),(4,5),(6,7),(8,9))
@@ -598,7 +629,7 @@ def main(image_original):
 
     _col=10
     score_dict={}
-
+    score_dict_2={}
 
     #print_hand_related=((1,3),(5,7))
 
@@ -607,17 +638,21 @@ def main(image_original):
             #align_images(images_res[(i,a)], images_res[(i,b)])
             try:
                 score=compare_images(images_res[(i,a)],images_res[(i,b)])
+                score_2=compare_images_pearson(images_res[(i,a)],images_res[(i,b)])
             #捕获keyerror
             except KeyError:
                 print('keyerror',i,a,b)
                 continue
 
             score_dict[(i,a,b)]=score
+            score_dict_2[(i,a,b)]=score_2
 
     #print(score_dict)
     score = sum(score_dict.values()) / len(score_dict)
-    print(score)
-    return score_dict
+    #print(score)
+    score_2=sum(score_dict_2.values())/len(score_dict_2)
+    #print(score_2)
+    return score,score_2
 def image_show(imageA, imageB):
     #将两个图片横向拼在一起显示
     imageA = cv2.resize(imageA, (100, 100))
@@ -654,11 +689,18 @@ def align_images(img1, img2):
 
 
 if __name__ == '__main__':
-    pic_name='bianzhuhao.jpg'
-    pic_name = 'biaozhun4.jpg'
-    pic_name='biaozhun3.jpg'
-    pic_name='new.png'
-    image = cv2.imread(pic_name)
-    res=main(image)
+
+
+    pic_dict={'女儿':'bianzhuhao.jpg','儿子':'biaozhun4.jpg'}
+    #pic_dict['test1']='test1.jpg'
+    #pic_dict['test2']='test2.jpg'
+    #pic_dict['test3']='test3.jpg'
+    #pic_dict['test4']='test4.jpg'
+    pic_dict['test5']='test5.jpg'
+    for key in pic_dict.keys():
+        pic_name=pic_dict[key]
+        image = cv2.imread(pic_name)
+        res=main(image)
+        print(key,'方法1:ssim得分',res[0],'方法2:pearson得分',res[1])
 
 
