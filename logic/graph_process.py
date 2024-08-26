@@ -133,9 +133,9 @@ def grid_graph(img):
     #contours, _ = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     #打印图片的尺寸
-    cv2.imshow('Result', mask)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('Result', mask)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     x,y,w,h = 0,0,0,0
     for cnt in contours:
@@ -395,17 +395,85 @@ def  compare_images_pearson(imageA, imageB):
     imageA_ = cv2.resize(imageA_, (100, 100))
     imageB_ = cv2.resize(imageB_, (100, 100))
     none_feature = cv2.resize(none_feature, (100, 100))
+    score = ssim(none_feature, imageB_)
+    # print('ssim',score)
+    if score > 0.8:
+        print('空白格')
+        return 0
+
+
     img_array_A = np.array(imageA_)
     img_array_B = np.array(imageB_)
-    img_array_none = np.array(none_feature)
     img_array_A = img_array_A.flatten()
     img_array_B = img_array_B.flatten()
-    img_array_none = img_array_none.flatten()
 
     # 计算皮尔森相关系数
     correlation, _ = pearsonr(img_array_A, img_array_B)
     score = (correlation + 1) * 50
     return score
+
+
+def compare_images_Tversky(imageA, imageB,alpha=0.5,beta=0.5):
+    none_feature = cv2.imread('none_feature.jpg')
+
+    imageA_ = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
+    imageB_ = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
+    none_feature = cv2.cvtColor(none_feature, cv2.COLOR_BGR2GRAY)
+    _, imageA_ = cv2.threshold(imageA_, 127, 255, cv2.THRESH_BINARY)
+    _, imageB_ = cv2.threshold(imageB_, 127, 255, cv2.THRESH_BINARY)
+    imageA_ = cv2.resize(imageA_, (100, 100))
+    imageB_ = cv2.resize(imageB_, (100, 100))
+    none_feature = cv2.resize(none_feature, (100, 100))
+    score = ssim(none_feature, imageB_)
+    # print('ssim',score)
+    if score > 0.8:
+        #print('空白格')
+        return 0
+
+
+    img_array_A = imageA_.flatten()
+    img_array_B = imageB_.flatten()
+    #image_show(imageA_,imageB_)
+    intersection = np.sum((img_array_A > 0) & (img_array_A > 0))
+    only_a = np.sum((img_array_A > 0) & (img_array_B == 0))
+    only_b = np.sum((img_array_B > 0) & (img_array_A == 0))
+    tversky_index=intersection/(intersection+alpha*only_a+beta*only_b)
+    #print('tversky_index',tversky_index,intersection,only_a,only_b)
+    score = tversky_index*100
+    return score
+
+
+def compare_images_cosine(imageA, imageB):
+    none_feature = cv2.imread('none_feature.jpg')
+
+    imageA_ = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
+    imageB_ = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
+    none_feature = cv2.cvtColor(none_feature, cv2.COLOR_BGR2GRAY)
+    _, imageA_ = cv2.threshold(imageA_, 127, 255, cv2.THRESH_BINARY)
+    _, imageB_ = cv2.threshold(imageB_, 127, 255, cv2.THRESH_BINARY)
+    imageA_ = cv2.resize(imageA_, (100, 100))
+    imageB_ = cv2.resize(imageB_, (100, 100))
+    none_feature = cv2.resize(none_feature, (100, 100))
+    score = ssim(none_feature, imageB_)
+    # print('ssim',score)
+    if score > 0.8:
+        #print('空白格')
+        return 0
+
+    imageA_ = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
+    imageB_ = cv2.cvtColor(imageB, cv2.COLOR_BGR2GRAY)
+    imageA_ = cv2.resize(imageA_, (100, 100))
+    imageB_ = cv2.resize(imageB_, (100, 100))
+
+    img_array_A = imageA_.flatten()
+    img_array_B = imageB_.flatten()
+
+    dot_product = np.dot(img_array_A, img_array_B)
+    norm_a = np.linalg.norm(img_array_A)
+    norm_b = np.linalg.norm(img_array_B)
+    cosine_similarity = dot_product / (norm_a * norm_b)
+
+    return (cosine_similarity+1)*50
 
 def grid_graph_v2(image_original,x=0,y=0,weigh=0,high=0):
     w, h = image_original.shape[1], image_original.shape[0]
@@ -630,7 +698,8 @@ def main(image_original):
     _col=10
     score_dict={}
     score_dict_2={}
-
+    score_dict_3={}
+    score_dict_4={}
     #print_hand_related=((1,3),(5,7))
 
     for a,b in print_hand_related:
@@ -639,6 +708,8 @@ def main(image_original):
             try:
                 score=compare_images(images_res[(i,a)],images_res[(i,b)])
                 score_2=compare_images_pearson(images_res[(i,a)],images_res[(i,b)])
+                score_3=compare_images_Tversky(images_res[(i,a)],images_res[(i,b)])
+                score_4=compare_images_cosine(images_res[(i,a)],images_res[(i,b)])
             #捕获keyerror
             except KeyError:
                 print('keyerror',i,a,b)
@@ -646,13 +717,18 @@ def main(image_original):
 
             score_dict[(i,a,b)]=score
             score_dict_2[(i,a,b)]=score_2
+            score_dict_3[(i,a,b)]=score_3
+            score_dict_4[(i,a,b)]=score_4
 
     #print(score_dict)
     score = sum(score_dict.values()) / len(score_dict)
     #print(score)
     score_2=sum(score_dict_2.values())/len(score_dict_2)
     #print(score_2)
-    return score,score_2
+    score_3=sum(score_dict_3.values())/len(score_dict_3)
+    #print(score_3)
+    score_4=sum(score_dict_4.values())/len(score_dict_4)
+    return score,score_2,score_3,score_4
 def image_show(imageA, imageB):
     #将两个图片横向拼在一起显示
     imageA = cv2.resize(imageA, (100, 100))
@@ -696,11 +772,11 @@ if __name__ == '__main__':
     #pic_dict['test2']='test2.jpg'
     #pic_dict['test3']='test3.jpg'
     #pic_dict['test4']='test4.jpg'
-    pic_dict['test5']='test5.jpg'
+    #pic_dict['test5']='test5.jpg'
     for key in pic_dict.keys():
         pic_name=pic_dict[key]
         image = cv2.imread(pic_name)
         res=main(image)
-        print(key,'方法1:ssim得分',res[0],'方法2:pearson得分',res[1])
+        print(key,'方法1:ssim得分',res[0],'方法2:pearson得分',res[1],'方法3:Tversky得分',res[2],'方法4:cosine得分',res[3])
 
 
