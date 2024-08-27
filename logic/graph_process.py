@@ -6,7 +6,7 @@ import math
 import pytesseract
 from pytesseract import Output
 from skimage.metrics import structural_similarity as ssim
-from graph_transform import pers_transform as graph_t
+import graph_transform as gt
 
 
 # 加载图片
@@ -721,7 +721,7 @@ def skeletonize(image):
 
 
 def main(image_original):
-    images_res,image_process = grid_graph(graph_t(image_original))
+    images_res,image_process = grid_graph(gt.pers_transform(image_original))
     #印刷体和手写体对对应行数
     #显示一下images
     cv2.imshow('Result', image_process)
