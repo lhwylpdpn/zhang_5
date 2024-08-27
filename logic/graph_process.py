@@ -6,8 +6,7 @@ import math
 import pytesseract
 from pytesseract import Output
 from skimage.metrics import structural_similarity as ssim
-
-
+from graph_transform import pers_transform as graph_t
 
 
 # 加载图片
@@ -129,9 +128,15 @@ def grid_graph(img):
     vertical = cv2.dilate(vertical, verticalStructure, (-1, -1))
     mask = horizontal + vertical
     # 找到轮廓
+    # OpenCV 3.x及之前版本
+    if int(cv2.__version__.split('.')[0]) == 3:
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    # OpenCV 4及之后版本
+    else:
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
     #contours, _ = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    #contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     #打印图片的尺寸
     # cv2.imshow('Result', mask)
     # cv2.waitKey(0)
@@ -146,6 +151,10 @@ def grid_graph(img):
 
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             break
+    #如果找不到合适的轮廓，那么就直接使用整张纸继续寻找下面的内容
+    if x==0 and y==0 and w==0 and h==0:
+        x,y,w,h=0,0,img.shape[1],img.shape[0]
+
     gird_list=[]
     for cnt in contours:
         t_x, t_y, t_w, t_h = cv2.boundingRect(cnt)
@@ -154,13 +163,13 @@ def grid_graph(img):
             #cv2.rectangle(img, (t_x, t_y), (t_x + t_w, t_y + t_h), (0, 255, 0), 2)
             gird_list.append((t_x, t_y, t_w, t_h))
     image_res = img.copy()
-    print(len(gird_list))
+    print('第一步找到的',len(gird_list))
     remove_list=[]
     for x, y, w, h in gird_list:
-        if abs(w-h)>=5:
+        if abs(w-h)>=10:
             remove_list.append((x, y, w, h))
     gird_list=[x for x in gird_list if x not in remove_list]
-    print(len(gird_list))
+    print('remove后',len(gird_list))
     #对每个轮廓的 先y后x进行排序
     gird_list=sorted(gird_list,key=lambda x:(x[1],x[0]))
 
@@ -683,13 +692,41 @@ def grid_graph_old_shouxie(image_original):
             roi = image_res[y:int(y + h_tmp), x:int(x + w_tmp)]
             images_res[(i, j)] = roi  # i 是列，j是行
     return images_res, image
+
+
+import cv2
+import numpy as np
+
+def skeletonize(image):
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, img_bin = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
+    skeleton = np.zeros(img_bin.shape, np.uint8)
+    size = np.size(img_bin)
+    skeleton_temp = np.zeros(img_bin.shape, np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
+
+    while True:
+        dilated = cv2.dilate(img_bin, kernel)
+        temp = cv2.erode(img_bin, kernel)
+        temp = cv2.subtract(dilated, temp)
+        skeleton = cv2.bitwise_or(skeleton, temp)
+        img_bin = cv2.erode(img_bin, kernel)
+
+        if cv2.countNonZero(img_bin) == 0:
+            break
+
+    return skeleton
+
+
+
+
 def main(image_original):
-    images_res,image_process = grid_graph(image_original)
+    images_res,image_process = grid_graph(graph_t(image_original))
     #印刷体和手写体对对应行数
     #显示一下images
-    # cv2.imshow('Result', image_process)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.imshow('Result', image_process)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
     print_hand_related=((0,1),(2,3),(4,5),(6,7),(8,9))
@@ -710,6 +747,12 @@ def main(image_original):
                 score_2=compare_images_pearson(images_res[(i,a)],images_res[(i,b)])
                 score_3=compare_images_Tversky(images_res[(i,a)],images_res[(i,b)])
                 score_4=compare_images_cosine(images_res[(i,a)],images_res[(i,b)])
+            #
+
+                # score=compare_images(skeletonize(images_res[(i,a)]),skeletonize(images_res[(i,b)]))
+                # score_2=compare_images_pearson(skeletonize(images_res[(i,a)]),skeletonize(images_res[(i,b)]))
+                # score_3=compare_images_Tversky(skeletonize(images_res[(i,a)]),skeletonize(images_res[(i,b)]))
+                # score_4=compare_images_cosine(skeletonize(images_res[(i,a)]),skeletonize(images_res[(i,b)]))
             #捕获keyerror
             except KeyError:
                 print('keyerror',i,a,b)
@@ -768,11 +811,11 @@ if __name__ == '__main__':
 
 
     pic_dict={'女儿':'bianzhuhao.jpg','儿子':'biaozhun4.jpg'}
-    #pic_dict['test1']='test1.jpg'
-    #pic_dict['test2']='test2.jpg'
-    #pic_dict['test3']='test3.jpg'
-    #pic_dict['test4']='test4.jpg'
-    #pic_dict['test5']='test5.jpg'
+    pic_dict['test1']='test1.jpg'
+    pic_dict['test2']='test2.jpg'
+    pic_dict['test3']='test3.jpg'
+    pic_dict['test4']='test4.jpg'
+    pic_dict['test5']='test5.jpg'
     for key in pic_dict.keys():
         pic_name=pic_dict[key]
         image = cv2.imread(pic_name)

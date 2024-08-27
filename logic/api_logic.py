@@ -4,6 +4,7 @@ import time
 import datetime
 import hashlib
 from .import graph_process as gp
+from .import graph_transform as gt
 import tempfile
 import cv2
 def logic_v1(file,request_id):
@@ -18,7 +19,7 @@ def logic_v1(file,request_id):
 
     #todo request_id 里可能有非法字符不一定可以保存成文件名，升级方向应该是随机文件名，然后数据库存关系
 
-    images_res,image_process = gp.grid_graph(image)
+    images_res,image_process = gp.grid_graph(gt.pers_transform(image))
 
     with open('process_image/'+request_id+'_'+uuid_+'_after.jpg','wb') as f:
         #将处理后的图片存储
