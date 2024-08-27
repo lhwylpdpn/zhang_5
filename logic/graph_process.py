@@ -6,7 +6,7 @@ import math
 import pytesseract
 from pytesseract import Output
 from skimage.metrics import structural_similarity as ssim
-import graph_transform as gt
+from .import graph_transform as gt
 
 
 # 加载图片
